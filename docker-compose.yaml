@@ -3,7 +3,8 @@ services:
 
   ha-monitor-api:
     container_name: ha-monitor-api
-    build: .
+    #build: .
+    image: bushrangers/ha-monitor-api:latest
 
     restart: always
     privileged: true
