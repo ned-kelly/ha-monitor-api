@@ -8,3 +8,5 @@ docker manifest create bushrangers/ha-monitor-api \
     bushrangers/ha-monitor-api:arm32v6 \
     bushrangers/ha-monitor-api:arm64v8 \
     bushrangers/ha-monitor-api:amd64
+
+docker manifest push bushrangers/ha-monitor-api:latest

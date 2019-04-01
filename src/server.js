@@ -5,7 +5,7 @@ var express = require("express");
 var Sequence = exports.Sequence || require('sequence').Sequence, sequence = Sequence.create(), err;
 var app = express();
 
-var LISTEN_PORT = process.env.PORT || 9999;
+var LISTEN_PORT = process.env.LISTEN_PORT || 9999;
 
 app.listen(LISTEN_PORT, () => {
     console.log("Server running on port " + LISTEN_PORT);
@@ -83,14 +83,25 @@ function buildResources(callback) {
         .then(function (next) {
             netstat.stats()
                 .then(status => {
-                    resObject.network = status;
-                    next();
+
+                    var networkKeys = {}, itemsProcessed = 0;
+
+                    Object.keys(status).forEach(function(key) {
+                        var val = status[key];
+                        networkKeys[val.interface] = val;
+                        
+                        itemsProcessed++;
+                        if(itemsProcessed === status.length) {
+                            resObject.network = networkKeys;
+                            next();
+                        }
+                    });
                 })
         })
         // Get the wireless network strength if we can and also push it into the network array...
         .then(function (next) {
             try {
-                // /proc/net/wireless
+                // /proc/net/wireless | /sys/class/wireless
                 require('fs').readFile("/proc/net/wireless", "utf8", function(err, data) {
                     if(data !== undefined) {
                         var wirelessSignal = data.split("\n");
@@ -107,14 +118,15 @@ function buildResources(callback) {
 
                                     if(firstLine == val) {
                                         resObject.network[key].wireless = {
-                                            link: wirelessItems[2],
-                                            level: wirelessItems[3],
-                                            noise: wirelessItems[4],
-                                            nwid: wirelessItems[5],
-                                            crypt: wirelessItems[6],
-                                            frag: wirelessItems[7],
-                                            retry: wirelessItems[8],
-                                            misc: wirelessItems[9]
+                                            qualityLink: wirelessItems[2].replace(/\./g, ""),
+                                            qualityLevel: wirelessItems[3].replace(/\./g, ""),
+                                            qualityNoise: wirelessItems[4],
+                                            packetsNwid: wirelessItems[5],
+                                            packetsCrypt: wirelessItems[6],
+                                            packetsFrag: wirelessItems[7],
+                                            packetsRetry: wirelessItems[8],
+                                            packetsMisc: wirelessItems[9],
+                                            missedBeacons: wirelessItems[10]
                                         }
                                     }
                                 }

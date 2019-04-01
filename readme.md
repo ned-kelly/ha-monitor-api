@@ -14,7 +14,7 @@ It does not aim to store metrics on disk, create fancy graphs etc - there's load
 
 
 
-![License](https://img.shields.io/github/license/ned-kelly/ha-monitor-api.svg) ![Docker Build Status](https://img.shields.io/docker/cloud/build/bushrangers/ha-monitor-api.svg) ![Docker Pulls](https://img.shields.io/docker/pulls/bushrangers/ha-monitor-api.png)
+![License](https://img.shields.io/github/license/ned-kelly/ha-monitor-api.svg) ![Docker Pulls](https://img.shields.io/docker/pulls/bushrangers/ha-monitor-api.png)
 
 
 
@@ -37,6 +37,12 @@ cd /opt/ha-monitor-api
 docker-compose up -d
 
 ```
+
+**NOTE:** The following system architectures are currently supported: `arm`, `arm64`, `amd64`. - If you're running on an architecture other than these the process will not start.
+
+## Configuration Variables
+
+By default the service listens on TCP:9999 (on all interfaces). If you need to change the port, you may do so by setting the `LISTEN_PORT` environment variable in your compose file.
 
 ## Integrating to Home Assistant:
 

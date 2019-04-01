@@ -8,8 +8,8 @@ services:
     restart: always
     privileged: true
 
-    ports:
-      - 9999:9999
+    # The network mode needs to be 'host' for us to get the ethernet/wifi adapter stats.
+    network_mode: host
 
     # We need to map in the system items so that we can pull our stats from the underlying host OS.
     volumes:
