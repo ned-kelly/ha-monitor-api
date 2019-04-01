@@ -17,10 +17,10 @@
   "dependencies": {
     "express": "^4.16.4",
     "node-os-utils": "^1.0.7",
+    "forever": "^0.15.4",
     "sequence": "^3.0.0"
   },
   "devDependencies": {
-    "forever": "^0.15.4",
     "nodemon": "^1.18.10"
   }
 }
