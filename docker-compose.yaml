@@ -3,7 +3,6 @@ services:
 
   ha-monitor-api:
     container_name: ha-monitor-api
-    #build: .
     image: bushrangers/ha-monitor-api:latest
 
     restart: always
