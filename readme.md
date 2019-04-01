@@ -12,7 +12,10 @@ It does not aim to store metrics on disk, create fancy graphs etc - there's load
 
 **Docker Hub:** [`bushrangers/ha-monitor-api`](https://hub.docker.com/r/bushrangers/ha-monitor-api/)
 
-![Docker Build Status](https://img.shields.io/docker/build/bushrangers/ha-monitor-api.png) ![Docker Pulls](https://img.shields.io/docker/pulls/bushrangers/ha-monitor-api.png)
+
+
+![License](https://img.shields.io/github/license/ned-kelly/ha-monitor-api.svg) ![Docker Build Status](https://img.shields.io/docker/cloud/build/bushrangers/ha-monitor-api.svg) ![Docker Pulls](https://img.shields.io/docker/pulls/bushrangers/ha-monitor-api.png)
+
 
 
 ## Prerequisites:
