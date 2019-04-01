@@ -1,0 +1,25 @@
+{
+  "name": "ha-monitor-api",
+  "version": "1.0.0",
+  "description": "A lightweight API that exposes the system's current performance (such as disk, network, cpu/temperature etc)",
+  "main": "server.js",
+  "scripts": {
+    "start": "nodemon server.js"
+  },
+  "keywords": [
+    "system",
+    "monitor",
+    "http",
+    "api"
+  ],
+  "author": "David Nedved",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.4",
+    "node-os-utils": "^1.0.7",
+    "sequence": "^3.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.10"
+  }
+}

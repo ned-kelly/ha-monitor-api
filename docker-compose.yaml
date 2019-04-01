@@ -1,0 +1,26 @@
+version: '3'
+services:
+
+  ha-monitor-api:
+    container_name: ha-monitor-api
+    build: .
+
+    restart: always
+    privileged: true
+
+    ports:
+      - 9999:9999
+
+    # We need to map in the system items so that we can pull our stats from the underlying host OS.
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+
+    healthcheck:
+      test: curl -sS http://127.0.0.1:8123 || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 3
