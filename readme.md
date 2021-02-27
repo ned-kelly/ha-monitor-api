@@ -76,6 +76,10 @@ An example here is taken from my OrangePI - _(Running [Facial Recognition](https
   headers:
     Content-Type: application/json
     User-Agent: Home Assistant Agent
+  # uncomment the following 3 lines when authentication is enabled
+  #authentication: digest
+  #username: john
+  #password: mysafepassword
 
 # To use the data on the Home Assistant Lovelace Dashboard we need to extract the values from the sensor, and store them as their own sensor values...
 - platform: template
