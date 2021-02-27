@@ -1,42 +1,106 @@
 // A lightweight API that exposes the system's current performance (such as disk, network, cpu/temperature etc)
 
-var osu = require('node-os-utils')
-var express = require("express");
-var Sequence = exports.Sequence || require('sequence').Sequence, sequence = Sequence.create(), err;
-var app = express();
+const osu = require('node-os-utils')
+const app = require("express")();
+const https = require("https");
+const auth = require("http-auth");
+const authConnect = require("http-auth-connect")
+const fs = require("fs");
+let Sequence = exports.Sequence || require('sequence').Sequence, sequence = Sequence.create(), err;
 
-var LISTEN_PORT = process.env.LISTEN_PORT || 9999;
+const LISTEN_PORT = process.env.LISTEN_PORT || 9999;
+const TLS_CRT = process.env.TLS_CRT || "";
+const TLS_KEY = process.env.TLS_KEY || "";
+const AUTH_REALM = process.env.AUTH_REALM || "";
+const AUTH_DIGESTFILE = process.env.AUTH_DIGESTFILE || "";
 
-app.listen(LISTEN_PORT, () => {
-    console.log("Server running on port " + LISTEN_PORT);
+// disable "powered-by" HTTP header to hide that this is an Express server
+app.disable("x-powered-by");
+
+// provide healthcheck endpoint for Docker Health Checks
+app.get("/healthcheck", (req, res, next) => {
+    res.json(true);
 });
 
+// spawn server via HTTPS is TLS certificate and key were provided
+if (TLS_CRT !== "" && TLS_KEY !== "") {
+    https.createServer({
+        key: fs.readFileSync(TLS_KEY),
+        cert: fs.readFileSync(TLS_CRT)
+    }, app)
+    .listen(LISTEN_PORT, () => {
+        console.log("Server running on port " + LISTEN_PORT + " (https)");
+        console.log(" > TLS certificate: '" + TLS_CRT + "'");
+        console.log(" > TLS key file: '" + TLS_KEY + "'");
+        if (MSG_DIGEST) {
+            console.log(MSG_DIGEST);
+        }
+    });
+}
+
+// otherwise just listen on HTTP
+else {
+    app.listen(LISTEN_PORT, () => {
+        console.log("Server running on port " + LISTEN_PORT);
+        if (MSG_DIGEST) {
+            console.log(MSG_DIGEST);
+        }
+    });
+}
+
+// use HTTP digest authentication if realm and digest file were provided
+//  -> running 'htdigest -c auth.digest myrealm myuser' will create a digest file 'auth.digest' and add 'myuser' to it
+//  -> running 'htdigest auth.digest myrealm myotheruser' will add 'myotheruser' to the digest file
+if (AUTH_REALM !== "" && AUTH_DIGESTFILE !== "") {
+    const digest = auth.digest({
+        realm: AUTH_REALM,
+        file: AUTH_DIGESTFILE
+    });
+
+    digest.on("success", (result, req) => {
+        console.log(" > user authenticated: " + result.user);
+    });
+
+    digest.on("fail", (result, req) => {
+	if (result.user) {
+            console.log(" > user authentication failed: " + result.user);
+        }
+    });
+
+    digest.on("error", (error, req) => {
+        console.log(" > authentication error: " + error.code + " - " + error.message);
+    });
+
+    app.use(authConnect(digest));
+    MSG_DIGEST = " > HTTP digest authentication enabled";
+    MSG_DIGEST = MSG_DIGEST + "\n > HTTP digest realm: " + AUTH_REALM;
+    MSG_DIGEST = MSG_DIGEST + "\n > HTTP digest file: " + AUTH_DIGESTFILE;
+}
+
+// default endpoint
 app.get("/", (req, res, next) => {
     buildResources(function(responseObject) {
         res.json(responseObject);
     });
 });
 
-app.get("/healthcheck", (req, res, next) => {
-    res.json(true);
-});
 
 
 function buildResources(callback) {
 
-    var cpu = osu.cpu;
-    var drive = osu.drive;
-    var mem = osu.mem;
-    var netstat = osu.netstat;
+    const cpu = osu.cpu;
+    const drive = osu.drive;
+    const mem = osu.mem;
+    const netstat = osu.netstat;
 
-    var resObject = {};
-    
+    let resObject = {};
+
     sequence
         .then(function (next) {
             try {
                 require('fs').readFile("/sys/class/thermal/thermal_zone0/temp", "utf8", function(err, data){
                     if(data !== undefined) {
-                        var temperature = parseInt(data.replace(/\D/g,''));
+                        let temperature = parseInt(data.replace(/\D/g,''));
                         temperature = Math.round((temperature * 0.001) * 100) / 100;
                         resObject.cpu_temperature = temperature;
                     }
@@ -62,7 +126,7 @@ function buildResources(callback) {
                 })
         })
         .then(function (next) {
-            var info = cpu.average()
+            let info = cpu.average()
             resObject.cpu_average = info;
             next();
         })
@@ -84,12 +148,12 @@ function buildResources(callback) {
             netstat.stats()
                 .then(status => {
 
-                    var networkKeys = {}, itemsProcessed = 0;
+                    let networkKeys = {}, itemsProcessed = 0;
 
                     Object.keys(status).forEach(function(key) {
-                        var val = status[key];
+                        let val = status[key];
                         networkKeys[val.interface] = val;
-                        
+
                         itemsProcessed++;
                         if(itemsProcessed === status.length) {
                             resObject.network = networkKeys;
@@ -104,16 +168,16 @@ function buildResources(callback) {
                 // /proc/net/wireless | /sys/class/wireless
                 require('fs').readFile("/proc/net/wireless", "utf8", function(err, data) {
                     if(data !== undefined) {
-                        var wirelessSignal = data.split("\n");
+                        let wirelessSignal = data.split("\n");
 
                         Object.keys(resObject.network).forEach(function(key) {
-                            var val = resObject.network[key].interface;
+                            let val = resObject.network[key].interface;
 
                             for(i in wirelessSignal) {
-                                var wirelessItems = wirelessSignal[i].split(/\s+/).filter(function(e){ return e === 0 || e });
-                                
-                                var firstLine = wirelessItems[0];
-                                if(firstLine !== undefined) { 
+                                let wirelessItems = wirelessSignal[i].split(/\s+/).filter(function(e){ return e === 0 || e });
+
+                                let firstLine = wirelessItems[0];
+                                if(firstLine !== undefined) {
                                     firstLine = firstLine.replace(/:/g, '');
 
                                     if(firstLine == val) {
