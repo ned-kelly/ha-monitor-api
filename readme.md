@@ -40,6 +40,14 @@ docker-compose up -d
 
 ## Configuration Variables
 
+### Security
+By default the service will be hosted via HTTP and no authentication. If you need to secure it you can protect it against sniffing attacks via HTTPS/TLS and enable [digest authentication](https://en.wikipedia.org/wiki/Digest_access_authentication) to keep your metrics private. It is possible to only enable TLS or only enable digest authentication. It is recommended to enable both though.
+
+Set the `TLS_CRT` and `TLS_KEY` environment variables in your compose file to let the service run on HTTPS. `TLS_CRT` will need to point to the TLS certificate file, `TLS_KEY` to the TLS key file belonging to that certificate. You can mount those files into the Docker container through the volumes setting in your compose file.
+
+Set the `AUTH_REALM` and `AUTH_DIGESTFILE` environment variables in your compose file to enable digest authentification. `AUTH_REALM` can be any string identifying your server. `AUTH_DIGESTFILE` will need to point to a valid digest file containing one or more sets of usernames and passwords (it is limited to one unique realm for all users though). To create a digest file run `htdigest -c YOURDIGESTFILE YOURREALM YOURUSERNAME` (changing the uppercase values to your liking). You'll be asked to enter the corresponding password twice and the file will be created. To add further users to that digest file run the same command without the `-c` parameter. You can mount the file into the Docker container through the volumes setting in your compose file.
+
+### Port
 By default the service listens on TCP:9999 (on all interfaces). If you need to change the port, you may do so by setting the `LISTEN_PORT` environment variable in your compose file.
 
 ## Integrating to Home Assistant
@@ -68,6 +76,10 @@ An example here is taken from my OrangePI - _(Running [Facial Recognition](https
   headers:
     Content-Type: application/json
     User-Agent: Home Assistant Agent
+  # uncomment the following 3 lines when authentication is enabled
+  #authentication: digest
+  #username: john
+  #password: mysafepassword
 
 # To use the data on the Home Assistant Lovelace Dashboard we need to extract the values from the sensor, and store them as their own sensor values...
 - platform: template
